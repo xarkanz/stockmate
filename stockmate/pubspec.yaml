@@ -51,6 +51,25 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  fonts :
+      - family : InterFont
+        fonts :
+          - asset : assets/fonts/Inter_18pt-Regular.ttf
+          - asset : assets/fonts/Inter_18pt-Light.ttf
+            weight : 100
+          - asset : assets/fonts/Inter_18pt-Medium.ttf
+            weight : 200
+          - asset : assets/fonts/Inter_18pt-SemiBold.ttf
+            weight : 300
+          - asset : assets/fonts/Inter_18pt-Bold.ttf
+            weight : 400
+          - asset : assets/fonts/Inter_18pt-Black.ttf
+            weight : 500
+  assets :
+    - assets/images/logo.png
+    - assets/images/cookies.jpeg
+    - assets/images/medicine.jpeg
+    - assets/images/scanner.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
