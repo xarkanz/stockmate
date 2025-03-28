@@ -1,7 +1,9 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:stockmate/database/database_helper.dart';
 import 'package:stockmate/database/product.dart';
@@ -19,6 +21,34 @@ import 'package:stockmate/widgets/categories_tile.dart';
 import 'package:stockmate/widgets/children_tile_cat.dart';
 import 'package:stockmate/widgets/dashboard_tile_button.dart';
 
+Color _getCategoryColor(String? category) {
+  switch (category) {
+    case "Food and Baverages":
+      return food_and_baverages;
+    case "Medicine":
+      return medicine;
+    case "Health":
+      return health;
+    case "Stationary":
+      return stationary;
+    case "Electronics":
+      return electronics;
+    case "Others":
+      return others;
+    default:
+      return Colors.grey;
+  }
+}
+
+String _formatDate(String dateAdded) {
+  try {
+    DateTime dateTime = DateTime.parse(dateAdded);
+    return DateFormat("dd/MM/yyyy HH:mm").format(dateTime);
+  } catch (e) {
+    return dateAdded;
+  }
+}
+
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
@@ -27,6 +57,61 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  int totalStock = 0;
+  int foodBeveragesStock = 0;
+  int medicineStock = 0;
+  int healthStock = 0;
+  int stationaryStock = 0;
+  int electronicsStock = 0;
+  int othersStock = 0;
+
+  List<Product> products = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTotalStock();
+    _loadProducts();
+  }
+
+  void _loadProducts() async {
+    List<Product> productList = await DatabaseHelper.instance.getAllProducts();
+    setState(() {
+      products = productList;
+    });
+  }
+
+  void _loadTotalStock() async {
+    int total = await DatabaseHelper.instance.getTotalStock();
+    int totalFood = await DatabaseHelper.instance.getTotalStockByCategory(
+      "Food and Baverages",
+    );
+    int totalMedicine = await DatabaseHelper.instance.getTotalStockByCategory(
+      "Medicine",
+    );
+    int totalHealth = await DatabaseHelper.instance.getTotalStockByCategory(
+      "Health",
+    );
+    int totalStationary = await DatabaseHelper.instance.getTotalStockByCategory(
+      "Stationary",
+    );
+    int totalElectronics = await DatabaseHelper.instance
+        .getTotalStockByCategory("Electronics");
+    int totalOthers = await DatabaseHelper.instance.getTotalStockByCategory(
+      "Others",
+    );
+
+    setState(() {
+      totalStock = total;
+      foodBeveragesStock = totalFood;
+      medicineStock = totalMedicine;
+      healthStock = totalHealth;
+      stationaryStock = totalStationary;
+      electronicsStock = totalElectronics;
+      othersStock = totalOthers;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
@@ -82,7 +167,7 @@ class _DashboardState extends State<Dashboard> {
                             ),
                           ),
                           Text(
-                            "800",
+                            "$totalStock",
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               color: dark_color,
@@ -99,38 +184,38 @@ class _DashboardState extends State<Dashboard> {
                       runSpacing: MediaQuery.of(context).size.width * 0.02,
                       children: [
                         ButtonDashboardTile(
-                          Maintext: "Food and Baverages",
-                          Secondarytext: "90",
+                          Maintext: "Food and Beverages",
+                          Secondarytext: "$foodBeveragesStock",
                           tilecolor: food_and_baverages,
                           destinationPage: PageFoodandbaverages(),
                         ),
                         ButtonDashboardTile(
                           Maintext: "Medicine",
-                          Secondarytext: "90",
+                          Secondarytext: "$medicineStock",
                           tilecolor: medicine,
                           destinationPage: PageMedicine(),
                         ),
                         ButtonDashboardTile(
                           Maintext: "Health",
-                          Secondarytext: "90",
+                          Secondarytext: "$healthStock",
                           tilecolor: health,
                           destinationPage: PageHealth(),
                         ),
                         ButtonDashboardTile(
                           Maintext: "Stationary",
-                          Secondarytext: "90",
+                          Secondarytext: "$stationaryStock",
                           tilecolor: stationary,
                           destinationPage: PageStationary(),
                         ),
                         ButtonDashboardTile(
                           Maintext: "Electronics",
-                          Secondarytext: "90",
+                          Secondarytext: "$electronicsStock",
                           tilecolor: electronics,
                           destinationPage: PageElectronics(),
                         ),
                         ButtonDashboardTile(
                           Maintext: "Others",
-                          Secondarytext: "90",
+                          Secondarytext: "$othersStock",
                           tilecolor: others,
                           destinationPage: PageOthers(),
                         ),
@@ -141,7 +226,11 @@ class _DashboardState extends State<Dashboard> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  _loadTotalStock();
+                  _loadProducts();
+                },
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(color: white_color),
@@ -149,7 +238,6 @@ class _DashboardState extends State<Dashboard> {
                     MediaQuery.of(context).size.width * 0.05,
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -162,38 +250,129 @@ class _DashboardState extends State<Dashboard> {
                       ),
 
                       SizedBox(height: 20),
-
-                      BoxCategories(
-                        box_image_categories: "assets/images/cookies.jpeg",
-                        box_text1_categories: "Goodtime",
-                        box_text2_categories: "Snack and Cookies",
-                        box_text3_categories: "12/03/2024",
-                        box_border_categories: food_and_baverages,
-                        categoriesTile: TileFoodAndBeverages(),
-                      ),
-
-                      BoxCategories(
-                        box_image_categories: "assets/images/medicine.jpeg",
-                        box_text1_categories: "Paracetamol",
-                        box_text2_categories: "Medicine",
-                        box_text3_categories: "13/03/2024",
-                        box_border_categories: medicine,
-                        categoriesTile: TileMedicine(),
-                      ),
-
-                      BoxCategories(
-                        box_image_categories: "assets/images/cookies.jpeg",
-                        box_text1_categories: "Goodtime",
-                        box_text2_categories: "Snack and Cookies",
-                        box_text3_categories: "12/03/2024",
-                        box_border_categories: food_and_baverages,
-                        categoriesTile: TileFoodAndBeverages(),
+                      Expanded(
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          physics: AlwaysScrollableScrollPhysics(),
+                          itemCount: products.length,
+                          itemBuilder: (context, index) {
+                            final product = products[index];
+                            return Container(
+                              margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1.5,
+                                  color: _getCategoryColor(product.category),
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: SizedBox(
+                                      width: 100,
+                                      height: 100,
+                                      child:
+                                          product.imagePath != null &&
+                                                  product.imagePath!.isNotEmpty
+                                              ? Image.file(
+                                                File(product.imagePath!),
+                                                fit: BoxFit.cover,
+                                              )
+                                              : Container(
+                                                color: Colors.grey[300],
+                                                child: Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 40,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 16),
+                                  Container(
+                                    height: 100,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              product.name,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                color: dark_color,
+                                                fontSize: 17,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              "${product.description}",
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: dark_color,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              _formatDate(product.dateAdded),
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: dark_color,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            if (product.category ==
+                                                "Food and Baverages")
+                                              TileFoodAndBeverages(),
+                                            if (product.category == "Medicine")
+                                              TileMedicine(),
+                                            if (product.category == "Health")
+                                              TileHealth(),
+                                            if (product.category ==
+                                                "Stationary")
+                                              TileStationary(),
+                                            if (product.category ==
+                                                "Electronics")
+                                              TileElectronics(),
+                                            if (product.category == "Others")
+                                              TileOthers(),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
+
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -226,7 +405,30 @@ class _DashboardState extends State<Dashboard> {
                             ),
                             IconButton(
                               onPressed: () {
-                                print("object");
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      title: Text(
+                                        "Created by XARKAN",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text("OK"),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               },
                               icon: Icon(
                                 Icons.settings_rounded,
@@ -257,79 +459,121 @@ class _DashboardState extends State<Dashboard> {
 
                         showDialog(
                           context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                          0.5,
-                                      width: MediaQuery.of(context).size.width,
-                                      child: MobileScanner(
-                                        controller: scanner,
-                                        onDetect: (capture) async {
-                                          final List<Barcode> barcodes =
-                                              capture.barcodes;
-                                          if (barcodes.isNotEmpty) {
-                                            String scannedCode =
-                                                barcodes.first.rawValue ??
-                                                "Unknown";
-                                            scanner.dispose();
-                                            Navigator.pop(context);
+                          builder: (context) {
+                            bool _isFlashOn =
+                                false; // Pindahkan ke dalam StatefulBuilder
 
-                                            Product? existingProduct =
-                                                await DatabaseHelper.instance
-                                                    .getProductByBarcode(
-                                                      scannedCode,
-                                                    );
+                            return StatefulBuilder(
+                              builder: (context, setStateDialog) {
+                                return AlertDialog(
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                            0.5,
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        child: Stack(
+                                          children: [
+                                            MobileScanner(
+                                              controller: scanner,
+                                              onDetect: (capture) async {
+                                                final List<Barcode> barcodes =
+                                                    capture.barcodes;
+                                                if (barcodes.isNotEmpty) {
+                                                  String scannedCode =
+                                                      barcodes.first.rawValue ??
+                                                      "Unknown";
+                                                  scanner.dispose();
+                                                  Navigator.pop(context);
 
-                                            if (existingProduct != null) {
-                                              Future.delayed(Duration.zero, () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (context) => AlertDialog(
-                                                        title: Text(
-                                                          "Product Already Exist",
-                                                        ),
-                                                        content: Text(
-                                                          "Products with this barcode have been added previously.",
-                                                        ),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed:
-                                                                () =>
-                                                                    Navigator.pop(
-                                                                      context,
+                                                  Product? existingProduct =
+                                                      await DatabaseHelper
+                                                          .instance
+                                                          .getProductByBarcode(
+                                                            scannedCode,
+                                                          );
+
+                                                  if (existingProduct != null) {
+                                                    Future.delayed(Duration.zero, () {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder:
+                                                            (
+                                                              context,
+                                                            ) => AlertDialog(
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      15,
                                                                     ),
-                                                            child: Text("OK"),
-                                                          ),
-                                                        ],
+                                                              ),
+                                                              title: Text(
+                                                                "Product Already Exist",
+                                                              ),
+                                                              content: Text(
+                                                                "Products with this barcode have been added previously.",
+                                                              ),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed:
+                                                                      () => Navigator.pop(
+                                                                        context,
+                                                                      ),
+                                                                  child: Text(
+                                                                    "OK",
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                      );
+                                                    });
+                                                  } else {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder:
+                                                            (
+                                                              context,
+                                                            ) => ScannerResult(
+                                                              scannedCode:
+                                                                  scannedCode,
+                                                            ),
                                                       ),
-                                                );
-                                              });
-                                            } else {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder:
-                                                      (context) =>
-                                                          ScannerResult(
-                                                            scannedCode:
-                                                                scannedCode,
-                                                          ),
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                            ),
+                                            Positioned(
+                                              top: 10,
+                                              right: 10,
+                                              child: IconButton(
+                                                onPressed: () {
+                                                  setStateDialog(() {
+                                                    _isFlashOn = !_isFlashOn;
+                                                  });
+                                                  scanner.toggleTorch();
+                                                },
+                                                icon: Icon(
+                                                  _isFlashOn
+                                                      ? Icons.flash_on_rounded
+                                                      : Icons.flash_off_rounded,
+                                                  color: Colors.white,
                                                 ),
-                                              );
-                                            }
-                                          }
-                                        },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -347,7 +591,6 @@ class _DashboardState extends State<Dashboard> {
                         minimumSize: Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-
                       child: Container(
                         width: 100,
                         height: 100,
