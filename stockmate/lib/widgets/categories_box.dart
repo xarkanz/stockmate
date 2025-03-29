@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:stockmate/theme.dart';
-import 'package:stockmate/widgets/categories_tile.dart';
 
 class BoxCategories extends StatefulWidget {
   final String box_text1_categories;

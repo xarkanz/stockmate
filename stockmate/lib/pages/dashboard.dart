@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:stockmate/database/database_helper.dart';
 import 'package:stockmate/database/product.dart';
 import 'package:stockmate/database/product_list.dart';
+import 'package:stockmate/pages/each_product_page.dart';
 import 'package:stockmate/pages/page_electronics.dart';
 import 'package:stockmate/pages/page_foodandbaverages.dart';
 import 'package:stockmate/pages/page_health.dart';
@@ -16,8 +16,6 @@ import 'package:stockmate/pages/page_others.dart';
 import 'package:stockmate/pages/page_stationary.dart';
 import 'package:stockmate/pages/scan_result.dart';
 import 'package:stockmate/theme.dart';
-import 'package:stockmate/widgets/categories_box.dart';
-import 'package:stockmate/widgets/categories_tile.dart';
 import 'package:stockmate/widgets/children_tile_cat.dart';
 import 'package:stockmate/widgets/dashboard_tile_button.dart';
 
@@ -257,111 +255,126 @@ class _DashboardState extends State<Dashboard> {
                           itemCount: products.length,
                           itemBuilder: (context, index) {
                             final product = products[index];
-                            return Container(
-                              margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1.5,
-                                  color: _getCategoryColor(product.category),
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            ProductDetailPage(product: product),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    width: 1.5,
+                                    color: _getCategoryColor(product.category),
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: SizedBox(
-                                      width: 100,
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: SizedBox(
+                                        width: 100,
+                                        height: 100,
+                                        child:
+                                            product.imagePath != null &&
+                                                    product
+                                                        .imagePath!
+                                                        .isNotEmpty
+                                                ? Image.file(
+                                                  File(product.imagePath!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                                : Container(
+                                                  color: Colors.grey[300],
+                                                  child: Icon(
+                                                    Icons.image_not_supported,
+                                                    size: 40,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 16),
+                                    Container(
                                       height: 100,
-                                      child:
-                                          product.imagePath != null &&
-                                                  product.imagePath!.isNotEmpty
-                                              ? Image.file(
-                                                File(product.imagePath!),
-                                                fit: BoxFit.cover,
-                                              )
-                                              : Container(
-                                                color: Colors.grey[300],
-                                                child: Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 40,
-                                                  color: Colors.grey[600],
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                product.name,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: dark_color,
+                                                  fontSize: 17,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                "${product.description}",
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: dark_color,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                _formatDate(product.dateAdded),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: dark_color,
                                                 ),
                                               ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              if (product.category ==
+                                                  "Food and Baverages")
+                                                TileFoodAndBeverages(),
+                                              if (product.category ==
+                                                  "Medicine")
+                                                TileMedicine(),
+                                              if (product.category == "Health")
+                                                TileHealth(),
+                                              if (product.category ==
+                                                  "Stationary")
+                                                TileStationary(),
+                                              if (product.category ==
+                                                  "Electronics")
+                                                TileElectronics(),
+                                              if (product.category == "Others")
+                                                TileOthers(),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Container(
-                                    height: 100,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              product.name,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                color: dark_color,
-                                                fontSize: 17,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "${product.description}",
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: dark_color,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              _formatDate(product.dateAdded),
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: dark_color,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            if (product.category ==
-                                                "Food and Baverages")
-                                              TileFoodAndBeverages(),
-                                            if (product.category == "Medicine")
-                                              TileMedicine(),
-                                            if (product.category == "Health")
-                                              TileHealth(),
-                                            if (product.category ==
-                                                "Stationary")
-                                              TileStationary(),
-                                            if (product.category ==
-                                                "Electronics")
-                                              TileElectronics(),
-                                            if (product.category == "Others")
-                                              TileOthers(),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -460,8 +473,7 @@ class _DashboardState extends State<Dashboard> {
                         showDialog(
                           context: context,
                           builder: (context) {
-                            bool _isFlashOn =
-                                false; // Pindahkan ke dalam StatefulBuilder
+                            bool _isFlashOn = false;
 
                             return StatefulBuilder(
                               builder: (context, setStateDialog) {
@@ -487,7 +499,9 @@ class _DashboardState extends State<Dashboard> {
                                                       barcodes.first.rawValue ??
                                                       "Unknown";
                                                   scanner.dispose();
-                                                  Navigator.pop(context);
+                                                  Navigator.pop(
+                                                    context,
+                                                  );
 
                                                   Product? existingProduct =
                                                       await DatabaseHelper
@@ -497,39 +511,18 @@ class _DashboardState extends State<Dashboard> {
                                                           );
 
                                                   if (existingProduct != null) {
-                                                    Future.delayed(Duration.zero, () {
-                                                      showDialog(
-                                                        context: context,
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
                                                         builder:
                                                             (
                                                               context,
-                                                            ) => AlertDialog(
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      15,
-                                                                    ),
-                                                              ),
-                                                              title: Text(
-                                                                "Product Already Exist",
-                                                              ),
-                                                              content: Text(
-                                                                "Products with this barcode have been added previously.",
-                                                              ),
-                                                              actions: [
-                                                                TextButton(
-                                                                  onPressed:
-                                                                      () => Navigator.pop(
-                                                                        context,
-                                                                      ),
-                                                                  child: Text(
-                                                                    "OK",
-                                                                  ),
-                                                                ),
-                                                              ],
+                                                            ) => ProductDetailPage(
+                                                              product:
+                                                                  existingProduct,
                                                             ),
-                                                      );
-                                                    });
+                                                      ),
+                                                    );
                                                   } else {
                                                     Navigator.push(
                                                       context,

@@ -6,8 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:stockmate/database/database_helper.dart';
 import 'package:stockmate/database/product.dart';
 import 'package:stockmate/theme.dart';
-import 'package:stockmate/widgets/categories_box.dart';
-import 'package:stockmate/widgets/children_tile_cat.dart';
 
 class ScannerResult extends StatefulWidget {
   final String scannedCode;
