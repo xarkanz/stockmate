@@ -18,7 +18,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'inventory.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Naikkan versi dari 1 ke 2
       onCreate: (db, version) async {
         await db.execute('''
         CREATE TABLE products (
@@ -28,9 +28,17 @@ class DatabaseHelper {
           description TEXT,
           category TEXT,
           imagePath TEXT,
-          dateAdded TEXT NOT NULL
+          dateAdded TEXT NOT NULL,
+          quantity INTEGER DEFAULT 0
         )
       ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE products ADD COLUMN quantity INTEGER DEFAULT 0',
+          );
+        }
       },
     );
   }
@@ -87,6 +95,16 @@ class DatabaseHelper {
       'SELECT COUNT(*) as total FROM products WHERE category = ?',
       [category],
     );
-    return Sqflite.firstIntValue(result) ?? 0;  
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<List<Product>> getRecentProducts(int limit) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'products',
+      orderBy: 'dateAdded DESC',
+      limit: limit,
+    );
+    return List.generate(maps.length, (i) => Product.fromMap(maps[i]));
   }
 }

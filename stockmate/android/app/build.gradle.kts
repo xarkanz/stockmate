@@ -37,6 +37,12 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    applicationVariants.all {
+    outputs.withType<com.android.build.gradle.internal.api.ApkVariantOutputImpl> {
+        outputFileName = "StockMate.apk"
+    }
+}
 }
 
 flutter {

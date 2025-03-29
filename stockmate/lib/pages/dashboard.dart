@@ -63,19 +63,21 @@ class _DashboardState extends State<Dashboard> {
   int electronicsStock = 0;
   int othersStock = 0;
 
-  List<Product> products = [];
+  List<Product> recentProducts = [];
 
   @override
   void initState() {
     super.initState();
     _loadTotalStock();
-    _loadProducts();
+    _loadRecentProducts();
   }
 
-  void _loadProducts() async {
-    List<Product> productList = await DatabaseHelper.instance.getAllProducts();
+  void _loadRecentProducts() async {
+    List<Product> productList = await DatabaseHelper.instance.getRecentProducts(
+      5,
+    ); // Ambil 5 terakhir
     setState(() {
-      products = productList;
+      recentProducts = productList;
     });
   }
 
@@ -227,7 +229,7 @@ class _DashboardState extends State<Dashboard> {
               child: RefreshIndicator(
                 onRefresh: () async {
                   _loadTotalStock();
-                  _loadProducts();
+                  _loadRecentProducts();
                 },
                 child: Container(
                   width: MediaQuery.of(context).size.width,
@@ -252,9 +254,9 @@ class _DashboardState extends State<Dashboard> {
                         child: ListView.builder(
                           padding: EdgeInsets.zero,
                           physics: AlwaysScrollableScrollPhysics(),
-                          itemCount: products.length,
+                          itemCount: recentProducts.length,
                           itemBuilder: (context, index) {
-                            final product = products[index];
+                            final product = recentProducts[index];
                             return GestureDetector(
                               onTap: () {
                                 Navigator.push(
@@ -499,9 +501,7 @@ class _DashboardState extends State<Dashboard> {
                                                       barcodes.first.rawValue ??
                                                       "Unknown";
                                                   scanner.dispose();
-                                                  Navigator.pop(
-                                                    context,
-                                                  );
+                                                  Navigator.pop(context);
 
                                                   Product? existingProduct =
                                                       await DatabaseHelper

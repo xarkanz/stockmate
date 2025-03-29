@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:stockmate/pages/each_product_page.dart';
 import 'package:stockmate/theme.dart';
 import 'package:stockmate/widgets/children_tile_cat.dart';
 import 'database_helper.dart';
@@ -48,7 +49,7 @@ class _ProductListPageState extends State<ProductListPage> {
     _loadProducts();
   }
 
-  void _loadProducts() {
+  Future<void> _loadProducts() async {
     setState(() {
       _productList = DatabaseHelper.instance.getAllProducts();
     });
@@ -98,47 +99,29 @@ class _ProductListPageState extends State<ProductListPage> {
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(color: primary_color),
               child: SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Icon(
-                          Icons.arrow_back_ios_rounded,
-                          size: 25,
-                          color: white_color,
-                          weight: 800,
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          surfaceTintColor: Colors.transparent,
-                          padding: EdgeInsets.symmetric(
-                            horizontal:
-                                MediaQuery.of(context).size.width * 0.03,
-                            vertical: MediaQuery.of(context).size.height * 0.03,
-                          ),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero,
-                          ),
-                          minimumSize: Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.03,
+                        vertical: MediaQuery.of(context).size.height * 0.03,
                       ),
-                      Text(
-                        "Product List",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: white_color,
-                          fontSize: 20,
-                        ),
+                      icon: Icon(
+                        Icons.arrow_back_ios_rounded,
+                        size: 25,
+                        color: white_color,
                       ),
-                    ],
-                  ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    Text(
+                      "Product List",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: white_color,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -156,180 +139,194 @@ class _ProductListPageState extends State<ProductListPage> {
 
                   final products = snapshot.data!;
 
-                  return ListView.builder(
-                    itemCount: products.length,
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (context, index) {
-                      final product = products[index];
+                  return RefreshIndicator(
+                    onRefresh: _loadProducts,
+                    child: ListView.builder(
+                      itemCount: products.length,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
 
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: MediaQuery.of(context).size.width * 0.05,
-                        ),
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          border: Border.all(
-                            width: 2,
-                            color: _getCategoryColor(product.category),
+                        return Container(
+                          margin: EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal:
+                                MediaQuery.of(context).size.width * 0.03,
                           ),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: SizedBox(
-                                width: 100,
-                                height: 100,
-                                child:
-                                    product.imagePath != null &&
-                                            product.imagePath!.isNotEmpty
-                                        ? Image.file(
-                                          File(product.imagePath!),
-                                          fit: BoxFit.cover,
-                                        )
-                                        : Container(
-                                          color: Colors.grey[300],
-                                          child: Icon(
-                                            Icons.image_not_supported,
-                                            size: 40,
-                                            color: Colors.grey[600],
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            border: Border.all(
+                              width: 2,
+                              color: _getCategoryColor(product.category),
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 100,
+                                  height: 100,
+                                  child:
+                                      product.imagePath != null &&
+                                              product.imagePath!.isNotEmpty
+                                          ? Image.file(
+                                            File(product.imagePath!),
+                                            fit: BoxFit.cover,
+                                          )
+                                          : Container(
+                                            color: Colors.grey[300],
+                                            child: Icon(
+                                              Icons.image_not_supported,
+                                              size: 40,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                ),
+                              ),
+                              SizedBox(width: 20),
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      height: 100,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                product.name,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: dark_color,
+                                                  fontSize: 17,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                "${product.description}",
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: dark_color,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              SizedBox(height: 2),
+                                              Text(
+                                                _formatDate(product.dateAdded),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: dark_color,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              if (product.category ==
+                                                  "Food and Baverages")
+                                                TileFoodAndBeverages(),
+                                              if (product.category ==
+                                                  "Medicine")
+                                                TileMedicine(),
+                                              if (product.category == "Health")
+                                                TileHealth(),
+                                              if (product.category ==
+                                                  "Stationary")
+                                                TileStationary(),
+                                              if (product.category ==
+                                                  "Electronics")
+                                                TileElectronics(),
+                                              if (product.category == "Others")
+                                                TileOthers(),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      children: [
+                                        IconButton(
+                                          onPressed:
+                                              () => _confirmDeleteProduct(
+                                                product.id!,
+                                              ),
+                                          style: IconButton.styleFrom(
+                                            backgroundColor: Colors.redAccent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: Size(30, 30),
+                                          ),
+                                          icon: Icon(
+                                            Icons.delete,
+                                            color: white_color,
+                                            size: 15,
                                           ),
                                         ),
-                              ),
-                            ),
-                            SizedBox(width: 20),
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    height: 100,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              product.name,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                color: dark_color,
-                                                fontSize: 17,
+                                        IconButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (context) =>
+                                                        ProductDetailPage(
+                                                          product: product,
+                                                        ),
                                               ),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
+                                            );
+                                          },
+                                          style: IconButton.styleFrom(
+                                            backgroundColor: Color.fromARGB(
+                                              255,
+                                              79,
+                                              174,
+                                              94,
                                             ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "${product.description}",
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: dark_color,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                            SizedBox(height: 2),
-                                            Text(
-                                              _formatDate(product.dateAdded),
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: dark_color,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 2),
-                                        Row(
-                                          children: [
-                                            if (product.category ==
-                                                "Food and Baverages")
-                                              TileFoodAndBeverages(),
-                                            if (product.category == "Medicine")
-                                              TileMedicine(),
-                                            if (product.category == "Health")
-                                              TileHealth(),
-                                            if (product.category ==
-                                                "Stationary")
-                                              TileStationary(),
-                                            if (product.category ==
-                                                "Electronics")
-                                              TileElectronics(),
-                                            if (product.category == "Others")
-                                              TileOthers(),
-                                          ],
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: Size(30, 30),
+                                          ),
+                                          icon: Icon(
+                                            Icons.edit,
+                                            size: 15,
+                                            color: white_color,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  Column(
-                                    children: [
-                                      IconButton(
-                                        onPressed:
-                                            () => _confirmDeleteProduct(
-                                              product.id!,
-                                            ),
-                                        style: IconButton.styleFrom(
-                                          backgroundColor: Colors.redAccent,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.zero,
-                                          minimumSize: Size(30, 30),
-                                        ),
-                                        icon: Icon(
-                                          Icons.delete,
-                                          color: white_color,
-                                          size: 15,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {},
-                                        style: IconButton.styleFrom(
-                                          backgroundColor: Color.fromARGB(
-                                            255,
-                                            79,
-                                            174,
-                                            94,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.zero,
-                                          minimumSize: Size(30, 30),
-                                        ),
-                                        icon: Icon(
-                                          Icons.edit,
-                                          size: 15,
-                                          color: white_color,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
               ),
